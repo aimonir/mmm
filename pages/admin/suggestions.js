@@ -45,7 +45,8 @@ export default function ManageSuggestions() {
     fetchSuggestionsAndPrograms();
   }, []);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const fetchSubjects = async () => {
       const { programName, semester } = newSuggestion;
