@@ -48,6 +48,7 @@ export default function ManageSuggestions() {
     
   
   
+  
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const fetchSubjects = async () => {
