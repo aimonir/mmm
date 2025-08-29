@@ -46,11 +46,7 @@ export default function Banner() {
 
           {/* Call-to-action buttons */}
           <div className="mt-8 flex justify-center space-x-4">
-<<<<<<< HEAD
-            <Link href="/about">
-=======
             <Link href="/ExamSuggestions" legacyBehavior>
->>>>>>> dev
               <a
                 className="bg-white text-blue-800 px-6 py-3 rounded-lg text-lg font-medium shadow hover:bg-gray-200"
                 aria-label="Get Suggestions"
@@ -58,11 +54,7 @@ export default function Banner() {
                 Get Suggestions
               </a>
             </Link>
-<<<<<<< HEAD
-            <Link href="/apply">
-=======
             <Link href="/apply" legacyBehavior>
->>>>>>> dev
               <a
                 className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-medium shadow hover:bg-blue-700"
                 aria-label="Send Request"
