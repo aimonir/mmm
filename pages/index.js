@@ -43,20 +43,12 @@ export default function Banner() {
 
           {/* Call-to-action Buttons */}
           <div className="mt-8 flex justify-center space-x-4">
-<<<<<<< HEAD
-            <Link href="/ExamSuggestions">
-=======
             <Link href="/ExamSuggestions" legacyBehavior>
->>>>>>> dev
               <a className="bg-white text-blue-800 px-6 py-3 rounded-lg text-lg font-medium shadow hover:bg-gray-200">
                 Get Suggestions
               </a>
             </Link>
-<<<<<<< HEAD
-            <Link href="/RequestForm">
-=======
             <Link href="/RequestForm" legacyBehavior>
->>>>>>> dev
               <a className="bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-medium shadow hover:bg-blue-700">
                 অনুরোধ পাঠান
               </a>
