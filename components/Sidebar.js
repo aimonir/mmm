@@ -17,10 +17,6 @@ export default function Sidebar() {
             </Link>
           </li>
           <li>
-<<<<<<< HEAD
-            <Link href="/" legacyBehavior>
-              <a className="block text-lg hover:text-gray-200">Logout</a>
-=======
             <Link href="/admin/suggestions" legacyBehavior>
               <a className="block text-lg hover:text-gray-200">Suggestions</a>
             </Link>
@@ -33,7 +29,11 @@ export default function Sidebar() {
           <li>
             <Link href="/admin/subjects" legacyBehavior>
               <a className="block text-lg hover:text-gray-200">Subjects</a>
->>>>>>> dev
+            </Link>
+          </li>
+          <li>
+            <Link href="/" legacyBehavior>
+              <a className="block text-lg hover:text-gray-200">Logout</a>
             </Link>
           </li>
         </ul>
