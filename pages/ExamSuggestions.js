@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
 const ExamSuggestions = () => {
-  const [programName, setProgramName] = useState('BA & BSS');
+  const [programName] = useState('BA & BSS');
   const [examYear, setExamYear] = useState('');
   const [semester, setSemester] = useState('');
   const [subject, setSubject] = useState('');
