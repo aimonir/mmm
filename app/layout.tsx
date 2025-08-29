@@ -1,0 +1,60 @@
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: {
+    default: "BOU Exam Suggestions",
+    template: "%s | BOU Exam Suggestions",
+  },
+  description: "Get exam suggestions, previous year questions, and study resources for Bangladesh Open University (BOU) students.",
+  openGraph: {
+    title: "BOU Exam Suggestions",
+    description: "Get exam suggestions, previous year questions, and study resources for Bangladesh Open University (BOU) students.",
+    url: "https://www.shozpat.com", // Replace with your actual domain
+    siteName: "BOU Exam Suggestions",
+    images: [
+      {
+        url: "https://www.shozpat.com/logo.png", // Replace with your actual OG image
+        width: 1200,
+        height: 630,
+        alt: "BOU Exam Suggestions",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BOU Exam Suggestions",
+    description: "Get exam suggestions, previous year questions, and study resources for Bangladesh Open University (BOU) students.",
+    creator: "@shozpat", // Replace with your Twitter handle
+    images: ["https://www.shozpat.com/logo.png"], // Replace with your actual Twitter image
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {children}
+      </body>
+    </html>
+  );
+}
