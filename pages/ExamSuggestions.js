@@ -107,8 +107,11 @@ const ExamSuggestions = () => {
           <div className="bg-white rounded-lg shadow-lg w-11/12 md:w-2/3 lg:w-1/2 overflow-hidden relative">
             <button onClick={closeModal} className="absolute top-3 right-3 text-gray-600 hover:text-black">✖</button>
             <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4">{selectedSuggestion.subject}</h2>
-              <div style={{whiteWhiteSpace: 'pre-wrap'}}>{selectedSuggestion.content}</div>
+              <h2 className="text-2xl font-bold mb-4 text-blue-600">{selectedSuggestion.subject}</h2>
+              <hr className="my-4 border-gray-300" />
+              <div style={{whiteSpace: 'pre-wrap'}}>{selectedSuggestion.content.map((item, index) => {
+                return <p key={index} className="mb-2">{item.isImportant ? '*** ' : ''}{item.text}</p>;
+              })}</div>
             </div>
           </div>
         </div>
