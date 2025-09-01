@@ -1,5 +1,6 @@
 import Header from './Header';
 import Footer from './Footer';
+import WhatsAppButton from './WhatsAppButton';
 
 export default function Layout({ children }) {
   return (
@@ -12,6 +13,9 @@ export default function Layout({ children }) {
 
       {/* Footer */}
       <Footer />
+
+      {/* WhatsApp Button */}
+      <WhatsAppButton />
     </div>
   );
 }

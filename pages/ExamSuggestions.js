@@ -103,14 +103,28 @@ const ExamSuggestions = () => {
       </div>
 
       {isModalOpen && selectedSuggestion && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-11/12 md:w-2/3 lg:w-1/2 overflow-hidden relative">
-            <button onClick={closeModal} className="absolute top-3 right-3 text-gray-600 hover:text-black">✖</button>
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-4 text-blue-600">{selectedSuggestion.subject}</h2>
-              <hr className="my-4 border-gray-300" />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg w-full md:w-2/3 lg:w-1/2 flex flex-col max-h-full">
+            <div className="flex justify-between items-center p-4 bg-blue-600 text-white rounded-t-lg">
+              <h2 className="text-2xl font-bold">{selectedSuggestion.subject}</h2>
+              <button onClick={closeModal} className="text-white hover:text-gray-200 text-2xl">✖</button>
+            </div>
+            <div className="p-6 overflow-y-auto bg-gray-100">
               <div style={{whiteSpace: 'pre-wrap'}}>{selectedSuggestion.content.map((item, index) => {
-                return <p key={index} className="mb-2">{item.isImportant ? '*** ' : ''}{item.text}</p>;
+                const isImportant = item.isImportant;
+                const itemClasses = `p-3 rounded-lg mb-2 ${
+                  isImportant
+                    ? 'bg-yellow-200 border-l-4 border-yellow-500'
+                    : index % 2 === 0
+                    ? 'bg-white'
+                    : 'bg-gray-50'
+                }`;
+                return (
+                  <div key={index} className={itemClasses}>
+                    {isImportant && <span className="font-bold text-yellow-600 mr-2">★</span>}
+                    {item.text}
+                  </div>
+                );
               })}</div>
             </div>
           </div>
