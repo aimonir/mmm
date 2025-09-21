@@ -11,13 +11,15 @@ export default function ManageSuggestions() {
     examYear: '',
     semester: '',
     subject: '',
-    content: '',
+    content: [],
   });
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' }); // { text: '...', type: 'success' | 'error' }
   const [editingSuggestionId, setEditingSuggestionId] = useState(null);
-  const examYears = ['2023', '2024', '2022'];
+  const [currentQuestion, setCurrentQuestion] = useState(''); // For adding individual questions
+
+  const examYears = ['2024', '2025', '2026'];
   const semesters = ['1st Semester', '2nd Semester', '3rd Semester', '4th Semester', '5th Semester', '6th Semester'];
 
   useEffect(() => {
@@ -33,7 +35,7 @@ export default function ManageSuggestions() {
         const programsData = programsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setPrograms(programsData);
         if (programsData.length > 0) {
-          setNewSuggestion((prev) => ({ ...prev, programName: programsData[0].name }));
+          setNewSuggestion((prev) => ({ ...prev, programName: programsData[0].name, content: [] }));
         }
       } catch (error) {
         console.error('Error fetching initial data:', error);
@@ -78,7 +80,7 @@ export default function ManageSuggestions() {
         }
       } else {
         setSubjects([]);
-        setNewSuggestion((prev) => ({ ...prev, subject: '' }));
+        setNewSuggestion((prev) => ({ ...prev, subject: '', content: [] }));
       }
     };
     fetchSubjects();
@@ -89,27 +91,44 @@ export default function ManageSuggestions() {
     setNewSuggestion((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleAddQuestion = () => {
+    if (currentQuestion.trim()) {
+      setNewSuggestion((prev) => ({
+        ...prev,
+        content: [...prev.content, { text: currentQuestion.trim(), isImportant: false }],
+      }));
+      setCurrentQuestion('');
+    }
+  };
+
+  const handleRemoveQuestion = (indexToRemove) => {
+    setNewSuggestion((prev) => ({
+      ...prev,
+      content: prev.content.filter((_, index) => index !== indexToRemove),
+    }));
+  };
+
   const handleEditSuggestion = (suggestion) => {
     setNewSuggestion({
       programName: suggestion.programName,
       examYear: suggestion.examYear,
       semester: suggestion.semester,
       subject: suggestion.subject,
-      content: suggestion.content,
+      content: suggestion.content || [], // Ensure content is an array
     });
     setEditingSuggestionId(suggestion.id);
   };
 
   const handleCancelEdit = () => {
-    setNewSuggestion({ programName: programs[0]?.name || '', examYear: '', semester: '', subject: '', content: '' });
+    setNewSuggestion({ programName: programs[0]?.name || '', examYear: '', semester: '', subject: '', content: [] });
     setEditingSuggestionId(null);
   };
 
   const handleSubmitSuggestion = async (e) => {
     e.preventDefault();
     setMessage({ text: '', type: '' }); // Clear previous messages
-    if (!newSuggestion.subject.trim() || !newSuggestion.content.trim()) {
-      setMessage({ text: 'Please fill out at least the subject and content.', type: 'error' });
+    if (!newSuggestion.subject.trim() || newSuggestion.content.length === 0) {
+      setMessage({ text: 'Please fill out at least the subject and add some content (questions).' , type: 'error' });
       return;
     }
     setLoading(true);
@@ -124,7 +143,7 @@ export default function ManageSuggestions() {
         await addDoc(collection(db, 'suggestions'), newSuggestion);
         setMessage({ text: 'Suggestion added successfully!', type: 'success' });
       }
-      setNewSuggestion({ programName: programs[0]?.name || '', examYear: '', semester: '', subject: '', content: '' });
+      setNewSuggestion({ programName: programs[0]?.name || '', examYear: '', semester: '', subject: '', content: [] });
       setEditingSuggestionId(null); // Exit edit mode
       // Refresh list
       const querySnapshot = await getDocs(collection(db, 'suggestions'));
@@ -191,7 +210,49 @@ export default function ManageSuggestions() {
                 {subjects.map(subject => <option key={subject.id} value={subject.subjectName}>{subject.subjectName}</option>)}
               </select>
             </div>
-            <textarea name="content" value={newSuggestion.content} onChange={handleInputChange} placeholder="Suggestion Content (use markdown for formatting)" className="w-full p-3 border border-gray-300 rounded-lg" rows="6" required></textarea>
+            <div className="mb-4">
+              <label htmlFor="questionInput" className="block text-lg font-medium text-gray-700 mb-2">Add Questions</label>
+              <div className="flex">
+                <input
+                  type="text"
+                  id="questionInput"
+                  value={currentQuestion}
+                  onChange={(e) => setCurrentQuestion(e.target.value)}
+                  placeholder="Enter question text"
+                  className="flex-1 p-3 border border-gray-300 rounded-l-lg"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddQuestion}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600"
+                >
+                  Add Question
+                </button>
+              </div>
+              <div className="mt-4 space-y-2">
+                {newSuggestion.content.map((q, index) => (
+                  <div key={index} className="flex justify-between items-center p-3 border border-gray-200 rounded-lg bg-gray-50">
+                    <input
+                      type="text"
+                      value={q.text}
+                      onChange={(e) => {
+                        const updatedContent = [...newSuggestion.content];
+                        updatedContent[index].text = e.target.value;
+                        setNewSuggestion((prev) => ({ ...prev, content: updatedContent }));
+                      }}
+                      className="flex-1 p-2 border border-gray-300 rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveQuestion(index)}
+                      className="ml-4 text-red-500 hover:text-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="flex space-x-2 mt-4">
               <button type="submit" disabled={loading} className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
                 {loading ? (editingSuggestionId ? 'Updating...' : 'Adding...') : (editingSuggestionId ? 'Update Suggestion' : 'Add Suggestion')}
