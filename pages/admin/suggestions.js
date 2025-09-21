@@ -12,12 +12,27 @@ export default function ManageSuggestions() {
     semester: '',
     subject: '',
     content: [],
+    suggestionType: '',
   });
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' }); // { text: '...', type: 'success' | 'error' }
   const [editingSuggestionId, setEditingSuggestionId] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(''); // For adding individual questions
+  const [currentQuestionType, setCurrentQuestionType] = useState('essay'); // Default type
+
+  const questionTypes = [
+    { value: 'essay', label: 'রচনামূলক প্রশ্ন' },
+    { value: 'short', label: 'সংক্ষিপ্ত উত্তরমূলক প্রশ্ন' },
+  ];
+
+  const suggestionTypes = [
+    { value: '', label: 'Select Type' },
+    { value: 'final', label: 'Final Exam' },
+    { value: 'midterm', label: 'Midterm' },
+    { value: 'quiz', label: 'Quiz' },
+    { value: 'assignment', label: 'Assignment' },
+  ];
 
   const examYears = ['2024', '2025', '2026'];
   const semesters = ['1st Semester', '2nd Semester', '3rd Semester', '4th Semester', '5th Semester', '6th Semester'];
@@ -95,7 +110,7 @@ export default function ManageSuggestions() {
     if (currentQuestion.trim()) {
       setNewSuggestion((prev) => ({
         ...prev,
-        content: [...prev.content, { text: currentQuestion.trim(), isImportant: false }],
+        content: [...prev.content, { text: currentQuestion.trim(), isImportant: false, type: currentQuestionType, sl: prev.content.length + 1 }],
       }));
       setCurrentQuestion('');
     }
@@ -104,7 +119,7 @@ export default function ManageSuggestions() {
   const handleRemoveQuestion = (indexToRemove) => {
     setNewSuggestion((prev) => ({
       ...prev,
-      content: prev.content.filter((_, index) => index !== indexToRemove),
+      content: prev.content.filter((_, index) => index !== indexToRemove).map((item, idx) => ({ ...item, sl: idx + 1 })), // Re-number after removal
     }));
   };
 
@@ -114,21 +129,22 @@ export default function ManageSuggestions() {
       examYear: suggestion.examYear,
       semester: suggestion.semester,
       subject: suggestion.subject,
-      content: suggestion.content || [], // Ensure content is an array
+      content: suggestion.content ? suggestion.content.map((item, idx) => ({ ...item, type: item.type || 'essay', sl: idx + 1 })) : [], // Ensure content is an array and each item has a type and sl
+      suggestionType: suggestion.suggestionType || '',
     });
     setEditingSuggestionId(suggestion.id);
   };
 
   const handleCancelEdit = () => {
-    setNewSuggestion({ programName: programs[0]?.name || '', examYear: '', semester: '', subject: '', content: [] });
+    setNewSuggestion({ programName: programs[0]?.name || '', examYear: '', semester: '', subject: '', content: [], suggestionType: '' });
     setEditingSuggestionId(null);
   };
 
   const handleSubmitSuggestion = async (e) => {
     e.preventDefault();
     setMessage({ text: '', type: '' }); // Clear previous messages
-    if (!newSuggestion.subject.trim() || newSuggestion.content.length === 0) {
-      setMessage({ text: 'Please fill out at least the subject and add some content (questions).' , type: 'error' });
+    if (!newSuggestion.subject.trim() || newSuggestion.content.length === 0 || !newSuggestion.suggestionType.trim()) {
+      setMessage({ text: 'Please fill out at least the subject, add some content (questions), and select a suggestion type.' , type: 'error' });
       return;
     }
     setLoading(true);
@@ -143,7 +159,7 @@ export default function ManageSuggestions() {
         await addDoc(collection(db, 'suggestions'), newSuggestion);
         setMessage({ text: 'Suggestion added successfully!', type: 'success' });
       }
-      setNewSuggestion({ programName: programs[0]?.name || '', examYear: '', semester: '', subject: '', content: [] });
+      setNewSuggestion({ programName: programs[0]?.name || '', examYear: '', semester: '', subject: '', content: [], suggestionType: '' });
       setEditingSuggestionId(null); // Exit edit mode
       // Refresh list
       const querySnapshot = await getDocs(collection(db, 'suggestions'));
@@ -205,6 +221,9 @@ export default function ManageSuggestions() {
                 <option value="">Select Semester</option>
                 {semesters.map(semester => <option key={semester} value={semester}>{semester}</option>)}
               </select>
+              <select name="suggestionType" value={newSuggestion.suggestionType} onChange={handleInputChange} className="w-full p-3 border border-gray-300 rounded-lg">
+                {suggestionTypes.map(type => <option key={type.value} value={type.value}>{type.label}</option>)}
+              </select>
               <select name="subject" value={newSuggestion.subject} onChange={handleInputChange} className="w-full p-3 border border-gray-300 rounded-lg" required>
                 <option value="">Select Subject</option>
                 {subjects.map(subject => <option key={subject.id} value={subject.subjectName}>{subject.subjectName}</option>)}
@@ -212,45 +231,67 @@ export default function ManageSuggestions() {
             </div>
             <div className="mb-4">
               <label htmlFor="questionInput" className="block text-lg font-medium text-gray-700 mb-2">Add Questions</label>
-              <div className="flex">
+              <div className="flex space-x-2 mb-2">
+                <select
+                  value={currentQuestionType}
+                  onChange={(e) => setCurrentQuestionType(e.target.value)}
+                  className="p-3 border border-gray-300 rounded-lg"
+                >
+                  {questionTypes.map((type) => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
+                </select>
                 <input
                   type="text"
                   id="questionInput"
                   value={currentQuestion}
                   onChange={(e) => setCurrentQuestion(e.target.value)}
                   placeholder="Enter question text"
-                  className="flex-1 p-3 border border-gray-300 rounded-l-lg"
+                  className="flex-1 p-3 border border-gray-300 rounded-lg"
                 />
                 <button
                   type="button"
                   onClick={handleAddQuestion}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
                 >
                   Add Question
                 </button>
               </div>
-              <div className="mt-4 space-y-2">
-                {newSuggestion.content.map((q, index) => (
-                  <div key={index} className="flex justify-between items-center p-3 border border-gray-200 rounded-lg bg-gray-50">
-                    <input
-                      type="text"
-                      value={q.text}
-                      onChange={(e) => {
-                        const updatedContent = [...newSuggestion.content];
-                        updatedContent[index].text = e.target.value;
-                        setNewSuggestion((prev) => ({ ...prev, content: updatedContent }));
-                      }}
-                      className="flex-1 p-2 border border-gray-300 rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveQuestion(index)}
-                      className="ml-4 text-red-500 hover:text-red-700"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
+              <div className="mt-4 space-y-4">
+                {questionTypes.map((type) => {
+                  const typedQuestions = newSuggestion.content.filter(q => q.type === type.value);
+                  return typedQuestions.length > 0 && (
+                    <div key={type.value}>
+                      <h3 className="text-xl font-semibold mb-2">{type.label}</h3>
+                      <div className="space-y-2">
+                        {typedQuestions.map((q, index) => (
+                          <div key={index} className="flex justify-between items-center p-3 border border-gray-200 rounded-lg bg-gray-50">
+                            <input
+                              type="text"
+                              value={`${q.sl}. ${q.text}`}
+                              onChange={(e) => {
+                                const updatedContent = [...newSuggestion.content];
+                                const originalIndex = newSuggestion.content.findIndex(item => item === q); // Find original index
+                                // Extract text after the serial number and dot
+                                const newText = e.target.value.replace(/^\d+\.\s*/, '');
+                                updatedContent[originalIndex].text = newText;
+                                setNewSuggestion((prev) => ({ ...prev, content: updatedContent }));
+                              }}
+                              className="flex-1 p-2 border border-gray-300 rounded-lg"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveQuestion(newSuggestion.content.findIndex(item => item === q))}
+                              className="ml-4 text-red-500 hover:text-red-700"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
             <div className="flex space-x-2 mt-4">
