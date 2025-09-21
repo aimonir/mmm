@@ -65,9 +65,9 @@ export default function ManageSuggestions() {
           const querySnapshot = await getDocs(q);
           const subjectsData = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
           setSubjects(subjectsData);
-          if (subjectsData.length > 0) {
+          if (subjectsData.length > 0 && !editingSuggestionId) {
             setNewSuggestion((prev) => ({ ...prev, subject: subjectsData[0].subjectName }));
-          } else {
+          } else if (!editingSuggestionId) {
             setNewSuggestion((prev) => ({ ...prev, subject: '' }));
           }
         } catch (error) {

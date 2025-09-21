@@ -27,16 +27,16 @@ const ExamSuggestions = () => {
   }, []);
 
   useEffect(() => {
-    if (programName && examYear && semester) {
+    if (programName && semester) {
       const filtered = allSubjectsData.filter(
-        (s) => s.programName === programName && s.examYear === examYear && s.semester === semester
+        (s) => s.programName === programName && s.semester === semester
       );
       setFilteredSubjects(filtered.map(s => s.subjectName));
     } else {
       setFilteredSubjects([]);
     }
     setSubject('');
-  }, [programName, examYear, semester, allSubjectsData]);
+  }, [programName, semester, allSubjectsData]);
 
   const handleShowSuggestions = () => {
     if (!subject) {
@@ -111,26 +111,34 @@ const ExamSuggestions = () => {
               <button onClick={closeModal} className="text-white hover:text-gray-200 text-2xl">✖</button>
             </div>
             <div className="p-6 overflow-y-auto bg-gray-100">
-              <div style={{whiteSpace: 'pre-wrap'}}>{selectedSuggestion.content.map((item, index) => {
-                const isImportant = item.isImportant;
-                const itemClasses = `p-3 rounded-lg mb-2 ${
-                  isImportant
-                    ? 'bg-yellow-200 border-l-4 border-yellow-500'
-                    : index % 2 === 0
-                    ? 'bg-white'
-                    : 'bg-gray-50'
-                }`;
-                return (
-                  <div key={index} className={itemClasses}>
-                    {isImportant && <span className="font-bold text-yellow-600 mr-2">★</span>}
-                    {item.text}
-                  </div>
-                );
-              })}</div>
+              <div style={{whiteSpace: 'pre-wrap'}}>
+                {Array.isArray(selectedSuggestion.content) ? (
+                  selectedSuggestion.content.map((item, index) => {
+                    const isImportant = item.isImportant;
+                    const itemClasses = `p-3 rounded-lg mb-2 ${
+                      isImportant
+                        ? 'bg-yellow-200 border-l-4 border-yellow-500'
+                        : index % 2 === 0
+                        ? 'bg-white'
+                        : 'bg-gray-50'
+                    }`;
+                    return (
+                      <div key={index} className={itemClasses}>
+                        {isImportant && <span className="font-bold text-yellow-600 mr-2">★</span>}
+                        {item.text}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="p-3 rounded-lg bg-white">{selectedSuggestion.content}</div>
+                )}
+              </div>
             </div>
           </div>
         </div>
       )}
+
+
     </div>
   );
 };

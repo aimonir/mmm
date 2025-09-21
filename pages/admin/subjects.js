@@ -8,6 +8,7 @@ export default function ManageSubjects() {
   const [programs, setPrograms] = useState([]);
   const [newSubject, setNewSubject] = useState({
     programName: '',
+    examYear: '',
     semester: '',
     subjectName: '',
   });
@@ -15,6 +16,7 @@ export default function ManageSubjects() {
   const [filterSemester, setFilterSemester] = useState('');
   const [message, setMessage] = useState({ text: '', type: '' }); // { text: '...', type: 'success' | 'error' }
 
+  const examYears = ['2024', '2025', '2026'];
   const semesters = ['1st Semester', '2nd Semester', '3rd Semester', '4th Semester', '5th Semester', '6th Semester'];
 
   useEffect(() => {
@@ -54,14 +56,14 @@ export default function ManageSubjects() {
   const handleAddSubject = async (e) => {
     e.preventDefault();
     setMessage({ text: '', type: '' }); // Clear previous messages
-    if (!newSubject.programName.trim() || !newSubject.semester.trim() || !newSubject.subjectName.trim()) {
+    if (!newSubject.programName.trim() || !newSubject.semester.trim() || !newSubject.subjectName.trim() || !newSubject.examYear.trim()) {
       setMessage({ text: 'Please fill out all fields.', type: 'error' });
       return;
     }
     setLoading(true);
     try {
       await addDoc(collection(db, 'subjects'), newSubject);
-      setNewSubject({ programName: programs[0]?.name || '', semester: '', subjectName: '' });
+      setNewSubject({ programName: programs[0]?.name || '', examYear: '', semester: '', subjectName: '' });
       setMessage({ text: 'Subject added successfully!', type: 'success' });
       // Refresh list
       let q = collection(db, 'subjects');
@@ -122,6 +124,10 @@ export default function ManageSubjects() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <select name="programName" value={newSubject.programName} onChange={handleInputChange} className="w-full p-3 border border-gray-300 rounded-lg">
                 {programs.map(program => <option key={program.id} value={program.name}>{program.name}</option>)}
+              </select>
+              <select name="examYear" value={newSubject.examYear} onChange={handleInputChange} className="w-full p-3 border border-gray-300 rounded-lg">
+                <option value="">Select Year</option>
+                {examYears.map(year => <option key={year} value={year}>{year}</option>)}
               </select>
               <select name="semester" value={newSubject.semester} onChange={handleInputChange} className="w-full p-3 border border-gray-300 rounded-lg">
                 <option value="">Select Semester</option>
