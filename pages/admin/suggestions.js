@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs, deleteDoc, doc, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, query, where, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import Sidebar from '../../components/Sidebar';
 
@@ -16,7 +16,7 @@ export default function ManageSuggestions() {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' }); // { text: '...', type: 'success' | 'error' }
-
+  const [editingSuggestionId, setEditingSuggestionId] = useState(null);
   const examYears = ['2023', '2024', '2022'];
   const semesters = ['1st Semester', '2nd Semester', '3rd Semester', '4th Semester', '5th Semester', '6th Semester'];
 
@@ -89,7 +89,23 @@ export default function ManageSuggestions() {
     setNewSuggestion((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddSuggestion = async (e) => {
+  const handleEditSuggestion = (suggestion) => {
+    setNewSuggestion({
+      programName: suggestion.programName,
+      examYear: suggestion.examYear,
+      semester: suggestion.semester,
+      subject: suggestion.subject,
+      content: suggestion.content,
+    });
+    setEditingSuggestionId(suggestion.id);
+  };
+
+  const handleCancelEdit = () => {
+    setNewSuggestion({ programName: programs[0]?.name || '', examYear: '', semester: '', subject: '', content: '' });
+    setEditingSuggestionId(null);
+  };
+
+  const handleSubmitSuggestion = async (e) => {
     e.preventDefault();
     setMessage({ text: '', type: '' }); // Clear previous messages
     if (!newSuggestion.subject.trim() || !newSuggestion.content.trim()) {
@@ -98,16 +114,25 @@ export default function ManageSuggestions() {
     }
     setLoading(true);
     try {
-      await addDoc(collection(db, 'suggestions'), newSuggestion);
+      if (editingSuggestionId) {
+        // Update existing suggestion
+        const suggestionRef = doc(db, 'suggestions', editingSuggestionId);
+        await updateDoc(suggestionRef, newSuggestion);
+        setMessage({ text: 'Suggestion updated successfully!', type: 'success' });
+      } else {
+        // Add new suggestion
+        await addDoc(collection(db, 'suggestions'), newSuggestion);
+        setMessage({ text: 'Suggestion added successfully!', type: 'success' });
+      }
       setNewSuggestion({ programName: programs[0]?.name || '', examYear: '', semester: '', subject: '', content: '' });
-      setMessage({ text: 'Suggestion added successfully!', type: 'success' });
+      setEditingSuggestionId(null); // Exit edit mode
       // Refresh list
       const querySnapshot = await getDocs(collection(db, 'suggestions'));
       const suggestionsData = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setSuggestions(suggestionsData);
     } catch (error) {
-      console.error('Error adding suggestion:', error);
-      setMessage({ text: 'Failed to add suggestion.', type: 'error' });
+      console.error('Error saving suggestion:', error);
+      setMessage({ text: `Failed to ${editingSuggestionId ? 'update' : 'add'} suggestion.`, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -147,8 +172,8 @@ export default function ManageSuggestions() {
 
         {/* Add new suggestion form */}
         <div className="bg-white p-6 rounded-lg shadow mb-8">
-          <h2 className="text-2xl font-bold mb-4">Add New Suggestion</h2>
-          <form onSubmit={handleAddSuggestion}>
+          <h2 className="text-2xl font-bold mb-4">{editingSuggestionId ? 'Edit Suggestion' : 'Add New Suggestion'}</h2>
+          <form onSubmit={handleSubmitSuggestion}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <select name="programName" value={newSuggestion.programName} onChange={handleInputChange} className="w-full p-3 border border-gray-300 rounded-lg">
                 {programs.map(program => <option key={program.id} value={program.name}>{program.name}</option>)}
@@ -167,9 +192,16 @@ export default function ManageSuggestions() {
               </select>
             </div>
             <textarea name="content" value={newSuggestion.content} onChange={handleInputChange} placeholder="Suggestion Content (use markdown for formatting)" className="w-full p-3 border border-gray-300 rounded-lg" rows="6" required></textarea>
-            <button type="submit" disabled={loading} className="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-              {loading ? 'Adding...' : 'Add Suggestion'}
-            </button>
+            <div className="flex space-x-2 mt-4">
+              <button type="submit" disabled={loading} className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                {loading ? (editingSuggestionId ? 'Updating...' : 'Adding...') : (editingSuggestionId ? 'Update Suggestion' : 'Add Suggestion')}
+              </button>
+              {editingSuggestionId && (
+                <button type="button" onClick={handleCancelEdit} className="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600">
+                  Cancel Edit
+                </button>
+              )}
+            </div>
           </form>
         </div>
 
@@ -184,9 +216,14 @@ export default function ManageSuggestions() {
                     <h3 className="font-bold">{suggestion.subject}</h3>
                     <p className="text-sm text-gray-500">{suggestion.programName} - {suggestion.examYear} - {suggestion.semester}</p>
                   </div>
-                  <button onClick={() => handleDeleteSuggestion(suggestion.id)} disabled={loading} className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600">
-                    Delete
-                  </button>
+                  <div className="flex space-x-2">
+                    <button onClick={() => handleEditSuggestion(suggestion)} disabled={loading} className="bg-yellow-500 text-white px-3 py-1 rounded-lg hover:bg-yellow-600">
+                      Edit
+                    </button>
+                    <button onClick={() => handleDeleteSuggestion(suggestion.id)} disabled={loading} className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600">
+                      Delete
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -196,4 +233,3 @@ export default function ManageSuggestions() {
     </div>
   );
 }
-

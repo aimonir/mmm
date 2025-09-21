@@ -62,7 +62,8 @@ const ExamSuggestions = () => {
     setSelectedSuggestion(null);
   };
 
-  const uniqueYears = [...new Set(allSubjectsData.map(s => s.examYear))];
+  // Manually add 2024, 2025, and 2026 to uniqueYears for demonstration/future planning
+  const uniqueYears = [...new Set([...allSubjectsData.map(s => s.examYear), '2024', '2025', '2026'])];
   const uniqueSemesters = [...new Set(allSubjectsData.map(s => s.semester))];
 
   return (
